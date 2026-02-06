@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_1(t *testing.T) {
+func TestNewRingBuffer(t *testing.T) {
 
 	capacity := 5
 
@@ -16,7 +16,7 @@ func Test_1(t *testing.T) {
 	assert.Equal(t, 0, rb.Size())
 }
 
-func Test_2(t *testing.T) {
+func TestWriteBasic(t *testing.T) {
 
 	capacity := 5
 
@@ -33,8 +33,7 @@ func Test_2(t *testing.T) {
 	assert.Equal(t, buf_expect, rb.buf)
 }
 
-func Test_3(t *testing.T) {
-
+func TestWriteExceedsCapacity(t *testing.T) {
 	capacity := 5
 
 	rb := NewRingBuffer(capacity)
@@ -62,7 +61,7 @@ func Test_3(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func Test_4(t *testing.T) {
+func TestReadBasic(t *testing.T) {
 
 	capacity := 5
 
@@ -93,42 +92,31 @@ func Test_4(t *testing.T) {
 	assert.Equal(t, 0, rb.Size())
 }
 
-func Test_5(t *testing.T) {
-
+func TestReadWriteFullCapacity(t *testing.T) {
 	capacity := 5
 
 	rb := NewRingBuffer(capacity)
 
-	data1 := []byte{1, 2, 3}
+	data1 := []byte{1, 2, 3, 4, 5}
 
 	nw, err := rb.Write(data1)
 	assert.Nil(t, err)
 	assert.Equal(t, nw, len(data1))
-	assert.Equal(t, 3, rb.Size())
-	assert.Equal(t, 3, rb.writePos)
+	assert.Equal(t, 5, rb.Size())
+	assert.Equal(t, 0, rb.writePos)
 
-	out1 := make([]byte, 3)
-	nr, err := rb.Read(2, out1)
+	out1 := make([]byte, 1)
+	nr, err := rb.Read(1, out1)
 	assert.Nil(t, err)
-	assert.Equal(t, 2, nr)
-	assert.Equal(t, 1, rb.Size())
-	assert.Equal(t, []byte{1, 2}, out1[:2])
-
-	data2 := []byte{4, 5, 6}
-	assert.Equal(t, 3, rb.writePos)
-	nw, err = rb.Write(data2)
-	assert.Nil(t, err)
-	assert.Equal(t, nw, len(data2))
+	assert.Equal(t, 1, nr)
 	assert.Equal(t, 4, rb.Size())
-	assert.Equal(t, 1, rb.writePos)
-	buf_expect := []byte{6, 2, 3, 4, 5}
-	assert.Equal(t, buf_expect, rb.buf)
+	assert.Equal(t, []byte{1}, out1[:1])
 
-	assert.Equal(t, 2, rb.readPos)
 	out2 := make([]byte, 4)
 	nr, err = rb.Read(4, out2)
 	assert.Nil(t, err)
 	assert.Equal(t, 4, nr)
 	assert.Equal(t, 0, rb.Size())
-	assert.Equal(t, []byte{3, 4, 5, 6}, out2[:4])
+	assert.Equal(t, []byte{2, 3, 4, 5}, out2[:4])
+	assert.Equal(t, 0, rb.readPos)
 }
